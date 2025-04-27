@@ -1,12 +1,13 @@
+import os
 import requests
 import json
 import pandas as pd
 import datetime
-import psycopg2
+from dotenv import load_dotenv
 
+load_dotenv()
 web = "https://apis.smartcity.hn/bildungscampus/iotplatform/digitalbeehive/v1/authGroup"
-apikey = "X7oqrrCEkOqq2P39MntzXHzopXwo9wMnSW4U03U8SVH4GOsz"
-apikey2 = "XUNAFSQbeAPAsmoOeK2K71QzE53PZkdSK2UzROo4Ni3bccSy" #just in case
+apikey = os.getenv("API_KEY")
 query = f"/entityId?page=0&x-apikey={apikey}"
 
 hives = [
@@ -89,4 +90,4 @@ df = df.astype({
   'tempC2' : 'float',
   'tempC3' : 'float'})
 
-df.head(50)
+print(df.head(50))
