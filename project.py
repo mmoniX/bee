@@ -5,24 +5,6 @@ import pandas as pd
 import datetime
 from dotenv import load_dotenv
 
-load_dotenv()
-web = "https://apis.smartcity.hn/bildungscampus/iotplatform/digitalbeehive/v1/authGroup"
-apikey = os.getenv("API_KEY")
-query = f"/entityId?page=0&x-apikey={apikey}"
-
-hives = [
-    "digital_bee_hive_42-s2120",
-    "digital_bee_hive_42_dragino-s31lb",
-    "digital_bee_hive_42_dragino-d23-lb"
-]
-url1, url2, url3 = [f"{web}/{hive}{query}" for hive in hives]
-
-sources = [
-    ("hive_s2120", url1),
-    ("hive_s31lb", url2),
-    ("hive_d23-lb", url3),
-]
-
 def fetch_data(sources):
   for name, url in sources:
     try:
@@ -37,11 +19,6 @@ def fetch_data(sources):
     except Exception as e:
       print(f"An error occurred while fetching data from {name}: {e}")
       yield name, None
-
-columns = ["timestamp", "ID", "Name", "Type", "Location",
-       "lightIntensity", "rainGauge", "relativeHumidity", "temperature", "pressure", "windDirection",
-       "uvIndex", "windSpeed", "tempC1", "tempC2", "tempC3"]
-df = pd.DataFrame(columns=columns)
 
 def process_data(json_data, df):
   for entity in json_data.get("entities", []):
@@ -73,21 +50,47 @@ def process_data(json_data, df):
   return df
 
 #for temporary, will change it after complete everything
-for name, json_data in fetch_data(sources):
-  if json_data:
-    df = process_data(json_data, df)
+def get_dataframe(sources, columns):
+  df = pd.DataFrame(columns=columns)
+  for name, json_data in fetch_data(sources):
+    if json_data:
+      df = process_data(json_data, df)
+  
+  df = df.astype({
+    'lightIntensity' : 'float',
+    'rainGauge' : 'float',
+    'relativeHumidity' : 'float',
+    'temperature' : 'float',
+    'pressure' : 'float',
+    'windDirection' : 'float',
+    'uvIndex' : 'float',
+    'windSpeed' : 'float',
+    'tempC1' : 'float',
+    'tempC2' : 'float',
+    'tempC3' : 'float'})
+  return (df)
 
-df = df.astype({
-  'lightIntensity' : 'float',
-  'rainGauge' : 'float',
-  'relativeHumidity' : 'float',
-  'temperature' : 'float',
-  'pressure' : 'float',
-  'windDirection' : 'float',
-  'uvIndex' : 'float',
-  'windSpeed' : 'float',
-  'tempC1' : 'float',
-  'tempC2' : 'float',
-  'tempC3' : 'float'})
+class BeeData:
+  def __init__(self):
+    load_dotenv()
+    self.web = "https://apis.smartcity.hn/bildungscampus/iotplatform/digitalbeehive/v1/authGroup"
+    self.apikey = os.getenv("API_KEY")
+    self.query = f"/entityId?page=0&x-apikey={self.apikey}"
 
-print(df.head(50))
+    self.hives = [
+      "digital_bee_hive_42-s2120",
+      "digital_bee_hive_42_dragino-s31lb",
+      "digital_bee_hive_42_dragino-d23-lb"]
+
+    url1, url2, url3 = [f"{self.web}/{hive}{self.query}" for hive in self.hives]
+    self.sources = [
+      ("hive_s2120", url1),
+      ("hive_s31lb", url2),
+      ("hive_d23-lb", url3)]
+    
+    self.columns = ["timestamp", "ID", "Name", "Type", "Location", 
+                    "lightIntensity", "rainGauge", "relativeHumidity", 
+                    "temperature", "pressure", "windDirection", "uvIndex", 
+                    "windSpeed", "tempC1", "tempC2", "tempC3"]
+  def run(self):
+    return (get_dataframe(self.sources, self.columns))

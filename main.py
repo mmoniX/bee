@@ -1,8 +1,9 @@
-from project import df
-
+from project import BeeData
 
 if __name__ == '__main__':
     try:
+        feature = BeeData()
+        df = feature.run()
         df.to_csv('readings.csv', sep=',', index=False)
         print(df.describe())
     except Exception as ex:

@@ -1,7 +1,5 @@
-from project import df
+from project import BeeData  #is there any use of it?
 import mariadb
-
-
 
 class Datasource:
 
