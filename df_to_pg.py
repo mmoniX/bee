@@ -1,11 +1,14 @@
 import psycopg2
+from dotenv import load_dotenv
+import os
 
 class Datasource:
     def __init__(self):
+        load_dotenv()
         try:
             self.conn = psycopg2.connect(
-                user="postgres", 
-                password="admin", 
+                user=os.getenv("USR"), 
+                password=os.getenv("PW"), 
                 host="db", # use localhost if db not work
                 port=5432, 
                 database="bee_pgdb")
