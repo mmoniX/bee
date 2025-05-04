@@ -1,8 +1,8 @@
 -- Create the database
-CREATE DATABASE bee_pgdb;
+-- CREATE DATABASE bee_pgdb;
 
 -- Switch to the database (not needed in PostgreSQL scripts, but useful in psql CLI)
-\c bee_db;
+-- \c bee_db;
 
 -- Create the sensor_type_tbl table
 CREATE TABLE sensor_type_tbl (

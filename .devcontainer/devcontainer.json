@@ -1,42 +1,26 @@
-// // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// // README at: https://github.com/devcontainers/templates/tree/main/src/postgres
-// {
-// 	"name": "Python 3 & PostgreSQL",
-// 	"dockerComposeFile": "docker-compose.yml",
-// 	"service": "app",
-// 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
-
-// 	// Features to add to the dev container. More info: https://containers.dev/features.
-// 	// "features": {},
-
-// 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-// 	// This can be used to network with other containers or the host.
-// 	"forwardPorts": [5000, 5432],
-
-// 	// Use 'postCreateCommand' to run commands after the container is created.
-// 	// "postCreateCommand": "pip install --user -r requirements.txt",
-// 	"postCreateCommand": "pip install requests pandas python-dotenv psycopg2"
-
-// 	// Configure tool-specific properties.
-// 	// "customizations": {},
-
-// 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-// 	// "remoteUser": "root"
-// }
-
-
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/postgres
 {
-	"name": "Docker Dev Container",
-	"image": "mcr.microsoft.com/vscode/devcontainers/python:3.9",  // Example base image
-	"features": {
-	  "docker-in-docker": "latest"  // Optional: Install Docker CLI inside the container
-	},
-	"mounts": [
-	  "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"  // Mount Docker socket
-	],
-	"postCreateCommand": "docker --version && docker-compose --version",  // Verify Docker and Docker Compose installation
-	"extensions": [
-	  "ms-azuretools.vscode-docker"  // Optional: Install Docker extension for VS Code
-	]
-  }
+	"name": "Python 3 & PostgreSQL",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// This can be used to network with other containers or the host.
+	"forwardPorts": [5000, 5432],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "pip install --user -r requirements.txt",
+	"postCreateCommand": "pip install requests pandas python-dotenv psycopg2"
+
+	// Configure tool-specific properties.
+	// "customizations": {},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}
   
