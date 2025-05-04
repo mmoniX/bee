@@ -1,7 +1,1 @@
 timestamp,ID,Name,Type,Location,lightIntensity,rainGauge,relativeHumidity,temperature,pressure,windDirection,uvIndex,windSpeed,tempC1,tempC2,tempC3
-2025-05-01 12:29:27,cb45a700-fa97-11ef-9d11-f54d6a2753bf,LoRa-2CF7F1C0613005BC,LoRaWAN SenseCAP-S2120,42,88464.0,0.0,30.0,28.0,100120.0,12.0,6.7,1.2,,,
-2025-05-01 12:22:14,f99dddb0-ffde-11ef-9545-f1c19ab288c3,LoRa-A840411F645AE815,LoRaWAN Dragino-S31-LB,42,,,68.6,35.2,,,,,,,
-2025-05-01 12:17:19,a4d4afc0-6eb6-11ef-b667-951a94d6009e,LoRa-A8404138A188669C,LoRaWAN Dragino-S31-LB,42,,,63.4,35.2,,,,,,,
-2025-05-01 12:18:29,a865a130-ffde-11ef-9545-f1c19ab288c3,LoRa-A84041CC625AE81E,LoRaWAN Dragino-S31-LB,42,,,62.4,34.9,,,,,,,
-2025-05-01 12:26:32,39182140-ffde-11ef-9545-f1c19ab288c3,LoRa-A84041892E5A7A68,LoRaWAN Dragino-D23-LB,42,,,,,,,,,31.8,34.0,31.5
-2025-05-01 12:27:04,efa9b480-8548-11ee-b88e-89581e0193df,LoRa-A840419521864618,LoRaWAN Dragino-D23-LB,42,,,,,,,,,32.1,30.3,29.6

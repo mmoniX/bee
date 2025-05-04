@@ -21,7 +21,7 @@ class Datasource:
 
     def close_connection(self):
         if self.cursor:
-            self.cursor.close()
+            self.cursor.close() 
         if self.conn:
             self.conn.close()
         print("Connection to PostgreSQL database closed.")
