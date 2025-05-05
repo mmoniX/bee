@@ -18,7 +18,12 @@ class Datasource:
             print(f"Connection to database failed: {ex}")
 
     # def insert_data(): #TODO
-
+    def connectPSQL(self):
+        try:
+            return self.cursor
+        except Exception as e:
+            print(f"Error due to :{e}")
+    
     def close_connection(self):
         if self.cursor:
             self.cursor.close() 

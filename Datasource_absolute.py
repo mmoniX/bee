@@ -1,5 +1,6 @@
 from project import BeeData  #is there any use of it?
-import mariadb
+import  psycopg2
+
 
 class Datasource:
 
@@ -8,15 +9,15 @@ class Datasource:
             """
                 initialize connection strings to the Maria db
             """
-            self.conn = mariadb.connect(
+            self.conn = psycopg2.connect(
                 user="bee_user",  
-                password="password",  
+                password="admin",  
                 host="localhost",  
-                port=3306,  
-                database="bee_db"   
+                port=5432,  
+                database="beedb"   
                 )
             
-        except mariadb.Error as ex:
+        except psycopg2.Error as ex:
             print(f"Error Using The credentials to DB : {ex}")
 
 
@@ -28,5 +29,7 @@ class Datasource:
                 then push the required data.
                 work on-progress
             """
+            query = "uinsert into db() values()"
+
         except  mariadb.Error as ex:
             print(f'Error connecting to Database : {ex}')
