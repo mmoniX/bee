@@ -1,5 +1,7 @@
 from project import BeeData
 from DataInsertions import DataInsertion
+from df_to_pg import Datasource
+
 
 if __name__ == '__main__':
     try:
@@ -12,9 +14,7 @@ if __name__ == '__main__':
              Notice that we read from API into Dataframe
              we can not tetch from dataframe series  as the data_to_be_inserted
         """
-        query = "INSERT INTO sensor_type_tbl (columns) values (%s, %f ...)"
-        data = df['column_name']
-        DataInsertion.insert(query, data=data)
+        # Connections to the Database
         
     except Exception as ex:
         print(f"Error due to {ex}")
