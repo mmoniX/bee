@@ -30,8 +30,8 @@ def process_data(json_data, df):
       ts = datetime.datetime.fromtimestamp(ts / 1000).strftime('%Y-%m-%d %H:%M:%S')
       row["timestamp"] = ts
       row["ID"] = entity.get("entityId", {}).get("id", None)
-      row["Name"] = entity.get("ENTITY_FIELD", {}).get("name", None)
-      row["Type"] = entity.get("ENTITY_FIELD", {}).get("type", None)
+      row["Sensor_Name"] = entity.get("ENTITY_FIELD", {}).get("name", None)
+      row["Sensor_Type"] = entity.get("ENTITY_FIELD", {}).get("type", None)
       row["Location"] = entity.get("SERVER_ATTRIBUTE", {}).get("location", {}).get("value", None)
       row["lightIntensity"] = entity.get("TIME_SERIES", {}).get("lightIntensity", {}).get("value", None)
       row["rainGauge"] = entity.get("TIME_SERIES", {}).get("rainGauge", {}).get("value", None)
@@ -88,7 +88,7 @@ class BeeData:
       ("hive_s31lb", url2),
       ("hive_d23-lb", url3)]
     
-    self.columns = ["timestamp", "ID", "Name", "Type", "Location", 
+    self.columns = ["timestamp", "ID", "Sensor_Name", "Sensor_Type", "Location", 
                     "lightIntensity", "rainGauge", "relativeHumidity", 
                     "temperature", "pressure", "windDirection", "uvIndex", 
                     "windSpeed", "tempC1", "tempC2", "tempC3"]
