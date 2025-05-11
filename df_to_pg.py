@@ -19,7 +19,7 @@ class DataSource:
                 password=DB_PASSWORD,
                 host=DB_HOST,
                 port=DB_PORT, 
-                database="bee_pgdb_3"
+                database="test2"
             )
             self.cursor = self.conn.cursor()
             print("Connection established")
@@ -42,7 +42,7 @@ class DataSource:
             self.cursor.execute(sensor_type_query, (sensor_id, st, created_at))
             sensor_type_map[st] = sensor_id
         print("sensor_type_ok")
-        
+    
         # Insert Measurement_unit
         measurement_units = {
             "lightIntensity": "lux",
@@ -87,8 +87,8 @@ class DataSource:
         sensor_query = """
             INSERT INTO sensors_tbl (
                 id, sensor_type_id, sensor_name, location_id, installation_date,
-                measurement_unit_id, last_seen, is_active, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                last_seen, is_active, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (sensor_name) DO NOTHING;
         """
         sensor_map = {}
@@ -100,33 +100,33 @@ class DataSource:
             sensor_type = sensor_type_map.get(row["Sensor_Type"])
             location_id = location_map.get(row["Location"])
             installation_date = created_at
-            measurement_unit_id = unit_map.get("°C")  # use temperature's unit as a placeholder
+            # measurement_unit_id = unit_map.get("°C")  # use temperature's unit as a placeholder
             self.cursor.execute(sensor_query, (
                 sensor_id, sensor_type, sensor_name, location_id, installation_date,
-                measurement_unit_id, created_at, True, created_at
+                created_at, True, created_at
             ))
             sensor_map[sensor_name] = sensor_id
         print("sensor_ok")
 
         # Insert Beehives
-        draft_hive_name = {
-            "hive_1": ["LoRa-2CF7F1C0613005BC", "LoRa-A840411F645AE815"],
-            "hive_2": ["LoRa-2CF7F1C0613005BC", "LoRa-A8404138A188669C", "LoRa-A84041892E5A7A68"],
-            "hive_3": ["LoRa-2CF7F1C0613005BC", "LoRa-A840419521864618", "LoRa-A84041CC625AE81E"]
-        }
         beehive_query = """
             INSERT INTO beehive_tbl (id, beehive_name, sensor_id, created_at)
             VALUES (%s, %s, %s, %s)
             ON CONFLICT (beehive_name, sensor_id) DO NOTHING;
         """
         beehive_map = {}
-        for hive_name, sensor_list in draft_hive_name.items():
-            for sensor_name in sensor_list:
-                sensor_id = sensor_map.get(sensor_name)
-                if sensor_id:
-                    hive_id = str(uuid.uuid4())
-                    self.cursor.execute(beehive_query, (hive_id, hive_name, sensor_id, created_at))
-                    beehive_map[hive_name, sensor_name] = hive_id
+        seen = set()
+        for _, row in df.iterrows():
+            hive_name = row["Hive_Name"]
+            sensor_name = row["Sensor_Name"]
+            if (hive_name, sensor_name) in seen:
+                continue
+            seen.add((hive_name, sensor_name))
+            sensor_id = sensor_map.get(sensor_name)
+            if sensor_id:
+                hive_id = str(uuid.uuid4())
+                self.cursor.execute(beehive_query, (hive_id, hive_name, sensor_id, created_at))
+                beehive_map[(hive_name, sensor_name)] = hive_id
         print("beehive_ok")
 
         # Insert Reading
@@ -137,21 +137,19 @@ class DataSource:
         for _, row in df.iterrows():
             sensor_name = row["Sensor_Name"]
             timestamp = row["timestamp"]
-            hives_for_sensor = [hive_name for hive_name, sensors in draft_hive_name.items()
-                                if sensor_name in sensors]
-            for hive_name in hives_for_sensor:
-                beehive_id = beehive_map.get((hive_name, sensor_name))
-                if not beehive_id:
-                    continue
-                for feature, unit in measurement_units.items():
-                    reading_value = row.get(feature)
-                    if pd.notna(reading_value):
-                        self.cursor.execute(reading_query, (
-                            str(uuid.uuid4()), beehive_id, timestamp, feature,
-                            reading_value, unit_map[unit], created_at
-                        ))
+            hive_name = row["Hive_Name"]
+            beehive_id = beehive_map.get((hive_name, sensor_name))
+            if not beehive_id:
+                continue
+            for feature, unit in measurement_units.items():
+                reading_value = row.get(feature)
+                if pd.notna(reading_value):
+                    reading_id = str(uuid.uuid4())
+                    self.cursor.execute(reading_query, (
+                        reading_id, beehive_id, timestamp, feature, reading_value, unit_map[unit], created_at
+                    ))
         print("reading_ok")
-    
+
         self.conn.commit()
         print("Data inserted.")
    

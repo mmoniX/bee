@@ -7,6 +7,7 @@ def program():
     try:
         feature = BeeData()
         df = feature.run()
+        # print(df.head())
 
         ds = DataSource()
         ds.insert_data(df)        
@@ -20,5 +21,5 @@ def program():
 if __name__ == '__main__':
     while True:
         program()
-        print("Waiting for the next 30 minutes...")
-        time.sleep(30 * 60)
+        print("Waiting for the next 10 minutes...")
+        time.sleep(10 * 60)
