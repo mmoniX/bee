@@ -60,8 +60,7 @@ CREATE TABLE beehive_tbl (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-	-- CONSTRAINT unique_beehive_sensor UNIQUE (beehive_name, sensor_id),
-    -- Remove the enrofced constraint, and that should resolves the issue.
+	CONSTRAINT unique_beehive_sensor UNIQUE (beehive_name, sensor_id),
     FOREIGN KEY (sensor_id) REFERENCES sensors_tbl (id) ON DELETE CASCADE
 );
 
