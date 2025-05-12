@@ -3,20 +3,20 @@ from df_to_pg import DataSource
 import time
 
 def program():
-    ds = None
     try:
         feature = BeeData()
         df = feature.run()
-        # print(df.head())
-
-        ds = DataSource()
-        ds.insert_data(df)        
+        if df.empty:
+            print("No data to insert.")
+            return
+        with DataSource() as ds:
+            ds.insert_data(df)       
     except Exception as ex:
         print(f"Error due to {ex}")
-    finally:
-        if ds:
-            ds.close_connection()
-        print("Connection closed")
+    # finally:
+    #     if ds is not None:
+    #         ds.close_connection()
+    #         print("Connection closed")
 
 if __name__ == '__main__':
     while True:

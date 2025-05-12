@@ -1,6 +1,5 @@
 import os
 import requests
-import json
 import pandas as pd
 import datetime
 from dotenv import load_dotenv
@@ -36,7 +35,7 @@ class BeeData:
     def fetch_data(self, sources):
         for name, url in sources:
             try:
-                response = requests.get(url)
+                response = requests.get(url, timeout=10)
                 if response.status_code == 200:
                     json_data = response.json()
                     print(f"{name} fetched successfully!")
@@ -52,11 +51,10 @@ class BeeData:
         for entity in json_data.get("entities", []):
             row = {}
             try:
-                ts = entity["SERVER_ATTRIBUTE"]["location"].get("ts")
+                ts = entity.get("SERVER_ATTRIBUTE", {}).get("location", {}).get("ts")
                 if ts is None:
                     continue
-                ts = datetime.datetime.fromtimestamp(ts / 1000).strftime('%Y-%m-%d %H:%M:%S')
-                row["timestamp"] = ts
+                row["timestamp"] = datetime.datetime.fromtimestamp(ts / 1000, tz=datetime.timezone.utc)
                 row["ID"] = entity.get("entityId", {}).get("id", None)
                 row["Sensor_Name"] = entity.get("ENTITY_FIELD", {}).get("name", None)
                 row["Sensor_Type"] = entity.get("ENTITY_FIELD", {}).get("type", None)
@@ -72,6 +70,10 @@ class BeeData:
                 row["tempC1"] = entity.get("TIME_SERIES", {}).get("tempC1", {}).get("value", None)
                 row["tempC2"] = entity.get("TIME_SERIES", {}).get("tempC2", {}).get("value", None)
                 row["tempC3"] = entity.get("TIME_SERIES", {}).get("tempC3", {}).get("value", None)
+                
+                if not any(row.values()):
+                    print("All values are None, skipping entity.")
+                    continue
                 df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
             except Exception as e:
                 print(f"Missing field {e}, skipping entity.")

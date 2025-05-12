@@ -19,12 +19,21 @@ class DataSource:
                 password=DB_PASSWORD,
                 host=DB_HOST,
                 port=DB_PORT, 
-                database="test2"
+                database="final"
             )
             self.cursor = self.conn.cursor()
             print("Connection established")
         except psycopg2.Error as ex:
             print(f"Connection to database failed: {ex}")
+    
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        if self.conn:
+            self.cursor.close()
+            self.conn.close()
+            print("Connection to PostgreSQL database closed.")
 
     def insert_data(self, df):
         created_at = datetime.datetime(2025, 4, 14, 10, 0, 0)
@@ -62,11 +71,16 @@ class DataSource:
             VALUES (%s, %s, %s)
             ON CONFLICT (measurement_unit) DO NOTHING;
         """
-        unit_map = {}
+        self.cursor.execute("SELECT id, measurement_unit FROM measurement_unit_tbl")
+        existing_units = self.cursor.fetchall()
+        unit_map = {unit: unit_id for unit_id, unit in existing_units}
+
+        # unit_map = {}
         for unit in set(measurement_units.values()):
-            unit_id = str(uuid.uuid4())
-            self.cursor.execute(unit_query, (unit_id, unit, created_at))
-            unit_map[unit] = unit_id
+            if unit not in unit_map:
+                unit_id = str(uuid.uuid4())
+                self.cursor.execute(unit_query, (unit_id, unit, created_at))
+                unit_map[unit] = unit_id
         print("measurement_unit_ok")
 
         # Insert Locations
@@ -83,79 +97,97 @@ class DataSource:
             location_map[loc] = loc_id
         print("location_ok")
 
+        # Insert Beehives
+        unique_hive = df["Hive_Name"].dropna().unique()
+        beehive_query = """
+            INSERT INTO beehive_tbl (id, beehive_name, created_at)
+            VALUES (%s, %s, %s)
+            ON CONFLICT (beehive_name) DO NOTHING;
+        """
+        for hive in unique_hive:
+            hive_id = str(uuid.uuid4())
+            self.cursor.execute(beehive_query, (hive_id, hive, created_at))
+        self.cursor.execute("SELECT id, beehive_name FROM beehive_tbl")
+        beehive_map = {name: id_ for id_, name in self.cursor.fetchall()}
+        print("beehive_ok")
+
         # Insert Sensor
         sensor_query = """
             INSERT INTO sensors_tbl (
-                id, sensor_type_id, sensor_name, location_id, installation_date,
+                id, sensor_name, sensor_type_id, location_id, installation_date,
                 last_seen, is_active, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (sensor_name) DO NOTHING;
         """
         sensor_map = {}
+        self.cursor.execute("SELECT id, sensor_name FROM sensors_tbl")
+        existing_sensors = {name: id_ for id_, name in self.cursor.fetchall()}
+        sensor_map = existing_sensors.copy()  # <-- FIXED HERE
         for _, row in df.iterrows():
             sensor_name = row["Sensor_Name"]
             if sensor_name in sensor_map:
                 continue
             sensor_id = str(uuid.uuid4())
-            sensor_type = sensor_type_map.get(row["Sensor_Type"])
+            sensor_type_id = sensor_type_map.get(row["Sensor_Type"])
             location_id = location_map.get(row["Location"])
-            installation_date = created_at
-            # measurement_unit_id = unit_map.get("°C")  # use temperature's unit as a placeholder
-            self.cursor.execute(sensor_query, (
-                sensor_id, sensor_type, sensor_name, location_id, installation_date,
-                created_at, True, created_at
-            ))
-            sensor_map[sensor_name] = sensor_id
+            if sensor_type_id and location_id:
+                self.cursor.execute(sensor_query, (
+                    sensor_id, sensor_name, sensor_type_id, location_id,
+                    created_at, created_at, True, created_at
+                ))
+                sensor_map[sensor_name] = sensor_id
         print("sensor_ok")
 
-        # Insert Beehives
-        beehive_query = """
-            INSERT INTO beehive_tbl (id, beehive_name, sensor_id, created_at)
+        # Insert Beehive-Sensor              ON CONFLICT (beehive_id, sensor_id) DO NOTHING;
+        beehive_sensor_query = """
+            INSERT INTO beehive_sensor_tbl (id, beehive_id, sensor_id, created_at)
             VALUES (%s, %s, %s, %s)
-            ON CONFLICT (beehive_name, sensor_id) DO NOTHING;
         """
-        beehive_map = {}
-        seen = set()
+        beehive_sensor_map = {}
         for _, row in df.iterrows():
             hive_name = row["Hive_Name"]
             sensor_name = row["Sensor_Name"]
-            if (hive_name, sensor_name) in seen:
-                continue
-            seen.add((hive_name, sensor_name))
+            beehive_id = beehive_map.get(hive_name)
             sensor_id = sensor_map.get(sensor_name)
-            if sensor_id:
-                hive_id = str(uuid.uuid4())
-                self.cursor.execute(beehive_query, (hive_id, hive_name, sensor_id, created_at))
-                beehive_map[(hive_name, sensor_name)] = hive_id
-        print("beehive_ok")
+            if beehive_id and sensor_id:
+                beehive_sensor_id = str(uuid.uuid4())
+                self.cursor.execute(beehive_sensor_query, (
+                    beehive_sensor_id, beehive_id, sensor_id, created_at
+                ))
+                beehive_sensor_map[(beehive_id, sensor_id)] = beehive_sensor_id
+        print("beehive_sensor_ok")
 
         # Insert Reading
         reading_query = """
-            INSERT INTO reading_tbl (id, beehive_id, ts, feature_name, reading_value, measurement_unit_id, created_at)
+            INSERT INTO reading_tbl (id, beehive_sensor_id, ts, feature_name, reading_value, 
+                measurement_unit_id, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         for _, row in df.iterrows():
             sensor_name = row["Sensor_Name"]
-            timestamp = row["timestamp"]
             hive_name = row["Hive_Name"]
-            beehive_id = beehive_map.get((hive_name, sensor_name))
-            if not beehive_id:
+            timestamp = row["timestamp"]
+            beehive_id = beehive_map.get(hive_name)
+            sensor_id = sensor_map.get(sensor_name)
+            if not (beehive_id and sensor_id):
+                continue
+            beehive_sensor_id = beehive_sensor_map.get((beehive_id, sensor_id))
+            if not beehive_sensor_id:
                 continue
             for feature, unit in measurement_units.items():
                 reading_value = row.get(feature)
                 if pd.notna(reading_value):
                     reading_id = str(uuid.uuid4())
                     self.cursor.execute(reading_query, (
-                        reading_id, beehive_id, timestamp, feature, reading_value, unit_map[unit], created_at
+                        reading_id, beehive_sensor_id, timestamp, feature, 
+                        reading_value, unit_map[unit], created_at
                     ))
         print("reading_ok")
 
+        if not sensor_map:
+            print("No sensors inserted or matched existing records.")
+        if not beehive_sensor_map:
+            print("No beehive-sensor relations created.")
+
         self.conn.commit()
         print("Data inserted.")
-   
-    def close_connection(self):
-        if self.cursor:
-            self.cursor.close() 
-        if self.conn:
-            self.conn.close()
-        print("Connection to PostgreSQL database closed.")
