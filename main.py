@@ -13,10 +13,6 @@ def program():
             ds.insert_data(df)       
     except Exception as ex:
         print(f"Error due to {ex}")
-    # finally:
-    #     if ds is not None:
-    #         ds.close_connection()
-    #         print("Connection closed")
 
 if __name__ == '__main__':
     while True:

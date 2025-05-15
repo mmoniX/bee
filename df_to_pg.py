@@ -19,7 +19,7 @@ class DataSource:
                 password=DB_PASSWORD,
                 host=DB_HOST,
                 port=DB_PORT, 
-                database="final"
+                database=DB_NAME
             )
             self.cursor = self.conn.cursor()
             print("Connection established")
@@ -122,7 +122,7 @@ class DataSource:
         sensor_map = {}
         self.cursor.execute("SELECT id, sensor_name FROM sensors_tbl")
         existing_sensors = {name: id_ for id_, name in self.cursor.fetchall()}
-        sensor_map = existing_sensors.copy()  # <-- FIXED HERE
+        sensor_map = existing_sensors.copy()
         for _, row in df.iterrows():
             sensor_name = row["Sensor_Name"]
             if sensor_name in sensor_map:
@@ -138,7 +138,7 @@ class DataSource:
                 sensor_map[sensor_name] = sensor_id
         print("sensor_ok")
 
-        # Insert Beehive-Sensor              ON CONFLICT (beehive_id, sensor_id) DO NOTHING;
+        # Insert Beehive-Sensor
         beehive_sensor_query = """
             INSERT INTO beehive_sensor_tbl (id, beehive_id, sensor_id, created_at)
             VALUES (%s, %s, %s, %s)
@@ -183,11 +183,6 @@ class DataSource:
                         reading_value, unit_map[unit], created_at
                     ))
         print("reading_ok")
-
-        if not sensor_map:
-            print("No sensors inserted or matched existing records.")
-        if not beehive_sensor_map:
-            print("No beehive-sensor relations created.")
 
         self.conn.commit()
         print("Data inserted.")

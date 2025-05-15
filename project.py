@@ -26,10 +26,10 @@ class BeeData:
                         "windDirection", "uvIndex", "windSpeed", "tempC1", "tempC2", "tempC3"
         ]
         self.hive_sensor_map = {
-            # "H42W_1": ["LoRa-2CF7F1C0613005BC"],
-            "Hive_1": ["LoRa-2CF7F1C0613005BC", "LoRa-A840411F645AE815", "LoRa-A84041892E5A7A68"],
-            "Hive_2": ["LoRa-2CF7F1C0613005BC", "LoRa-A8404138A188669C", "LoRa-A840419521864618"],
-            "Hive_3": ["LoRa-2CF7F1C0613005BC", "LoRa-A84041CC625AE81E"]
+            "W42": ["LoRa-2CF7F1C0613005BC"],
+            "Hive_1": ["LoRa-A840411F645AE815", "LoRa-A84041892E5A7A68"],
+            "Hive_2": ["LoRa-A8404138A188669C", "LoRa-A840419521864618"],
+            "Hive_3": ["LoRa-A84041CC625AE81E", "LoRa-A8404160C85A7A7B"],
         }
 
     def fetch_data(self, sources):
@@ -70,10 +70,7 @@ class BeeData:
                 row["tempC1"] = entity.get("TIME_SERIES", {}).get("tempC1", {}).get("value", None)
                 row["tempC2"] = entity.get("TIME_SERIES", {}).get("tempC2", {}).get("value", None)
                 row["tempC3"] = entity.get("TIME_SERIES", {}).get("tempC3", {}).get("value", None)
-                
-                if not any(row.values()):
-                    print("All values are None, skipping entity.")
-                    continue
+
                 df = pd.concat([df, pd.DataFrame([row])], ignore_index=True)
             except Exception as e:
                 print(f"Missing field {e}, skipping entity.")
@@ -93,17 +90,11 @@ class BeeData:
         expanded_rows = []
         for _, row in df.iterrows():
             sensor_name = row["Sensor_Name"]
-            matched = False
             for hive, sensors in self.hive_sensor_map.items():
                 if sensor_name in sensors:
                     new_row = row.copy()
                     new_row["Hive_Name"] = hive
                     expanded_rows.append(new_row)
-                    matched = True
-            if not matched:
-                new_row = row.copy()
-                new_row["Hive_Name"] = None
-                expanded_rows.append(new_row)
         return pd.DataFrame(expanded_rows)
             
     def run(self):
