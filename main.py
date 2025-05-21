@@ -1,5 +1,5 @@
-from project import BeeData
-from df_to_pg import DataSource
+from data_frame import BeeData
+from data_insertion import DataSource
 import time
 
 def program():

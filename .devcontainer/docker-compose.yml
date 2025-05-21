@@ -5,31 +5,34 @@ services:
     build:
       context: ..
       dockerfile: .devcontainer/Dockerfile
-
+    container_name: bee_app
     volumes:
-      - ../..:/workspaces:cached
-
-    # Overrides default command so things don't shut down after the process ends.
-    command: sleep infinity
-
-    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
-    network_mode: service:db
-
-    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
+      - ..:/workspaces/Bee
+    working_dir: /workspaces/Bee
+    env_file:
+      - ../.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+    command: python main.py
 
   db:
     image: postgres:latest
-    restart: unless-stopped
+    container_name: bee_db
+    restart: always
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./doc.env
+    # environment:
+    #   POSTGRES_USER: ${PG_USER}
+    #   POSTGRES_DB: ${PG_NAME}
+    #   POSTGRES_PASSWORD: ${PG_PASSWORD}
+    #   POSTGRES_HOST: ${PG_HOST}
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
-      POSTGRES_PASSWORD: admin
-
-    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
-    # (Adding the "ports" property to this file will not forward from a Codespace.)
+      - ../schema_pg.sql:/docker-entrypoint-initdb.d/schema_pg.sql
 
 volumes:
   postgres-data:

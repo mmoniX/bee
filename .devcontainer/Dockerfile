@@ -1,14 +1,20 @@
-FROM mcr.microsoft.com/devcontainers/python:1-3.11-bullseye
+# Use official Python base image
+FROM python:3.11-slim
 
-ENV PYTHONUNBUFFERED 1
+# Set working directory inside container
+WORKDIR /app
 
-# [Optional] If your requirements rarely change, uncomment this section to add them to the image.
-# COPY requirements.txt /tmp/pip-tmp/
-# RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt \
-#    && rm -rf /tmp/pip-tmp
-
-# [Optional] Uncomment this section to install additional OS packages.
+# Install PostgreSQL client
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive && apt-get -y install --no-install-recommends postgresql-client
 
+# Copy requirements.txt first for caching dependencies
+COPY ../requirements.txt ./requirements.txt
 
+# Install dependencies
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy all app code
+COPY . .
+
+# Default command to run your app
+CMD ["python", "main.py"]
