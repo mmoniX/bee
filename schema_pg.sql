@@ -1,5 +1,5 @@
 -- Create the sensor_type_tbl table
-CREATE TABLE sensor_type_tbl (
+CREATE TABLE if NOT EXISTS sensor_type_tbl (
     id UUID PRIMARY KEY,
     sensor_type_name VARCHAR(50) NOT NULL UNIQUE,
     serial_no VARCHAR(50) UNIQUE,
@@ -9,7 +9,7 @@ CREATE TABLE sensor_type_tbl (
 );
 
 -- Create the measurement_unit_tbl table
-CREATE TABLE measurement_unit_tbl (
+CREATE TABLE if NOT EXISTS measurement_unit_tbl (
     id UUID PRIMARY KEY,
     measurement_unit VARCHAR(50) NOT NULL UNIQUE,
     descriptions VARCHAR(200),
@@ -18,7 +18,7 @@ CREATE TABLE measurement_unit_tbl (
 );
 
 -- Create the location_tbl table
-CREATE TABLE location_tbl (
+CREATE TABLE if NOT EXISTS location_tbl (
     id UUID PRIMARY KEY,
     location_name VARCHAR(50) NOT NULL UNIQUE,
     -- location_cord VARCHAR(50) NOT NULL UNIQUE,
@@ -28,7 +28,7 @@ CREATE TABLE location_tbl (
 );
 
 -- Create the beehive_tbl table
-CREATE TABLE beehive_tbl (
+CREATE TABLE if NOT EXISTS beehive_tbl (
     id UUID PRIMARY KEY,
     beehive_name VARCHAR(50) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -36,7 +36,7 @@ CREATE TABLE beehive_tbl (
 );
 
 -- Create the sensors_tbl table
-CREATE TABLE sensors_tbl (
+CREATE TABLE if NOT EXISTS sensors_tbl (
     id UUID PRIMARY KEY,
 	sensor_name VARCHAR(200) NOT NULL UNIQUE,
     sensor_type_id UUID NOT NULL,
@@ -51,7 +51,7 @@ CREATE TABLE sensors_tbl (
     FOREIGN KEY (location_id) REFERENCES location_tbl (id) ON DELETE NO ACTION
 );
 
-CREATE TABLE beehive_sensor_tbl (
+CREATE TABLE if NOT EXISTS beehive_sensor_tbl (
     id UUID PRIMARY KEY,
     beehive_id UUID NOT NULL,
     sensor_id UUID NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE beehive_sensor_tbl (
 );
 
 -- Create reading_tbl
-CREATE TABLE reading_tbl (
+CREATE TABLE if NOT EXISTS reading_tbl (
     id UUID PRIMARY KEY,
     beehive_sensor_id UUID NOT NULL,
     ts TIMESTAMP NOT NULL,
